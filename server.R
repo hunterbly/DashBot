@@ -178,7 +178,7 @@ function(input, output, session){
 										FROM signal_hit AS hit
 											LEFT OUTER JOIN signal_strength AS strength
 												ON hit.code = strength.code AND hit.signal = strength.signal
-											LEFT OUTER JOIN stock_price AS price
+											LEFT OUTER JOIN stock AS price
 												ON hit.code = price.code AND hit.date = price.date
 										WHERE hit.code = '%s' AND hit.signal = '%s'
 										ORDER BY hit.date DESC
@@ -249,7 +249,7 @@ function(input, output, session){
 			assert_that(grepl("([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))",input_date))
 
 			conn <- poolCheckout(pool)
-			query_str <- sprintf("SELECT max(date) as date from stock_price")
+			query_str <- sprintf("SELECT max(date) as date from stock")
 			df_max_date <- dbGetQuery(conn, query_str)
 
 			poolReturn(conn)
@@ -294,7 +294,7 @@ function(input, output, session){
 
 		# Get max date to compare with the input date
 		conn <- poolCheckout(pool)
-		max.date.query <- sprintf("SELECT MAX(date) as date FROM stock_price")
+		max.date.query <- sprintf("SELECT MAX(date) as date FROM stock")
 		df.max.date <- dbGetQuery(conn, max.date.query)
 
 		if(exists("df.max.date")){max_date <- df.max.date$date}
@@ -303,7 +303,7 @@ function(input, output, session){
 		i_start_date <- as.character(as.Date(i_end_date,"%Y-%m-%d") - 14)
 
 		# get data within date range, signal strength, hit history, within the past 3 years
-		option.data.query <- sprintf("SELECT * FROM stock_price WHERE code IN (%s) AND date >= '%s' AND date <= '%s' order by date desc", option_stock_list, i_start_date, i_end_date)
+		option.data.query <- sprintf("SELECT * FROM stock WHERE code IN (%s) AND date >= '%s' AND date <= '%s' order by date desc", option_stock_list, i_start_date, i_end_date)
 		option.data.signalStrength.query <- sprintf("SELECT * FROM signal_strength WHERE code IN (%s) order by code asc", option_stock_list)
 		signal.hit.query <- sprintf("select * FROM signal_hit WHERE code IN (%s) AND date >= '%s';", option_stock_list, n_past_n_days)
 
